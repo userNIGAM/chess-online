@@ -49,7 +49,7 @@ export default function ChessBoard() {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 p-4">
 
-      <div className="grid grid-cols-8 w-[90vw] max-w-[600px] aspect-square border-4 border-gray-700 shadow-2xl">
+      <div className="grid grid-cols-8 w-[90vw] max-w-150 aspect-square border-4 border-gray-700 shadow-2xl">
         {board.map((rowData, row) =>
           rowData.map((piece, col) => {
 
