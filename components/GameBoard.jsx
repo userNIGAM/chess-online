@@ -8,62 +8,85 @@ import { getMoves } from "./utils/getMoves";
 
 export default function ChessBoard() {
   const [board, setBoard] = useState(initialBoard);
-  const [selected, setSelected] = useState(null);
+  const [currentPlayer, setCurrentPlayer] = useState("white");
+  const [moveHistory, setMoveHistory] = useState([]);
+  const [selected, setSelected] = useState(null); // [row, col]
   const [moves, setMoves] = useState([]);
 
-  // Pawn movement logic
 
-  // Handle square click
-  function handleClick(row, col) {
-    const clickedPiece = board[row][col];
+  function getPieceColor(piece) {
+  if (!piece) return null;
+  return piece[0] === "w" ? "white" : "black";
+}
 
-    //if a move square is clicked
-    const isMove = moves.some(([r, c]) => r === row && c === col
-  );
-  if (selected && isMove){
+function handleClick(row, col) {
+  const clickedPiece = board[row][col];
+
+  const isMove = moves.some(([r, c]) => r === row && c === col);
+
+  // ✅ MOVE
+  if (selected && isMove) {
     const [sRow, sCol] = selected;
-    const newBoard = board.map(r => [...r])
+    const movingPiece = board[sRow][sCol];
 
-    newBoard[row][col] = newBoard[sRow][sCol]
+    // ✅ TURN CHECK (FIXED)
+    if (getPieceColor(movingPiece) !== currentPlayer) return;
+
+    const newBoard = board.map(r => [...r]);
+
+    newBoard[row][col] = movingPiece;
     newBoard[sRow][sCol] = null;
-    
+
     setBoard(newBoard);
-    setSelected(null)
-    setMoves([])
+    setSelected(null);
+    setMoves([]);
+
+    // ✅ SWITCH TURN
+    setCurrentPlayer(prev =>
+      prev === "white" ? "black" : "white"
+    );
 
     return;
   }
 
-  //selecting a piece
-  if(clickedPiece){
+  // ✅ SELECT
+  if (clickedPiece) {
+    // ✅ TURN CHECK (FIXED)
+    if (getPieceColor(clickedPiece) !== currentPlayer) return;
 
-    const legalMoves = getMoves(clickedPiece, board, row, col)
-    
+    const legalMoves = getMoves(clickedPiece, board, row, col);
+
     setSelected([row, col]);
     setMoves(legalMoves);
-  } else{
-    setSelected(null);
-    setMoves([])
+    return;
   }
 
-    // if (!piece) {
-    //   setMoves([]);
-    //   return;
-    // }
-    // const legalMoves = getMoves(piece, board, row, col);
-  }
+  // RESET
+  setSelected(null);
+  setMoves([]);
+}
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 p-4">
-      <div className="grid grid-cols-8 w-[90vw] max-w-150 aspect-square border-4 border-gray-700 shadow-2xl">
+      
+      {/* 🔁 TURN DISPLAY */}
+      <h2 className="text-white text-xl mb-4">
+        Turn: {currentPlayer === "white" ? "White ♔" : "Black ♚"}
+      </h2>
+
+      <div className="grid grid-cols-8 w-[90vw] max-w-[600px] aspect-square border-4 border-gray-700 shadow-2xl">
         {board.map((rowData, row) =>
           rowData.map((piece, col) => {
             const isDark = (row + col) % 2 === 1;
 
-            const isMove = moves.some(([r, c]) => r === row && c === col);
+            const isMove = moves.some(
+              ([r, c]) => r === row && c === col
+            );
 
             const isSelected =
-              selected && selected[0] === row && selected[1] === col;
+              selected &&
+              selected[0] === row &&
+              selected[1] === col;
 
             return (
               <motion.div
@@ -93,7 +116,7 @@ export default function ChessBoard() {
                 )}
               </motion.div>
             );
-          }),
+          })
         )}
       </div>
     </div>
